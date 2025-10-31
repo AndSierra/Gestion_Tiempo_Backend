@@ -1,0 +1,695 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "TimeTracker Server API",
+        "description": "API Backend para el sistema TimeTracker. Desarrollada con Node.js + Express + TypeScript + SQLite.",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3001",
+            "description": "Servidor local de desarrollo"
+        }
+    ],
+    "paths": {
+        "/api/auth/login": {
+            "post": {
+                "summary": "Iniciar sesión",
+                "tags": [
+                    "Autenticación"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "example": "admin@timetracker.com"
+                                    },
+                                    "password": {
+                                        "type": "string",
+                                        "example": "admin123"
+                                    }
+                                },
+                                "required": [
+                                    "email",
+                                    "password"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inicio de sesión exitoso"
+                    },
+                    "401": {
+                        "description": "Credenciales inválidas"
+                    }
+                }
+            }
+        },
+        "/api/auth/logout": {
+            "post": {
+                "summary": "Cerrar sesión",
+                "tags": [
+                    "Autenticación"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Sesión cerrada correctamente"
+                    }
+                }
+            }
+        },
+        "/api/users": {
+            "get": {
+                "summary": "Listar usuarios",
+                "tags": [
+                    "Usuarios"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de usuarios"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Crear usuario",
+                "tags": [
+                    "Usuarios"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string"
+                                    },
+                                    "password": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "email",
+                                    "password"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Usuario creado"
+                    }
+                }
+            }
+        },
+        "/api/users/{id}": {
+            "get": {
+                "summary": "Obtener usuario por ID",
+                "tags": [
+                    "Usuarios"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuario encontrado"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Actualizar usuario",
+                "tags": [
+                    "Usuarios"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Usuario actualizado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar usuario",
+                "tags": [
+                    "Usuarios"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Usuario eliminado"
+                    }
+                }
+            }
+        },
+        "/api/clients": {
+            "get": {
+                "summary": "Listar clientes",
+                "tags": [
+                    "Clientes"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de clientes"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Crear cliente",
+                "tags": [
+                    "Clientes"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "description": {
+                                        "type": "string"
+                                    }
+                                },
+                                "required": [
+                                    "name"
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Cliente creado"
+                    }
+                }
+            }
+        },
+        "/api/clients/{id}": {
+            "get": {
+                "summary": "Obtener cliente por ID",
+                "tags": [
+                    "Clientes"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cliente encontrado"
+                    }
+                }
+            },
+            "put": {
+                "summary": "Actualizar cliente",
+                "tags": [
+                    "Clientes"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Cliente actualizado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar cliente",
+                "tags": [
+                    "Clientes"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Cliente eliminado"
+                    }
+                }
+            }
+        },
+        "/api/projects": {
+            "get": {
+                "summary": "Listar proyectos",
+                "tags": [
+                    "Proyectos"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de proyectos"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Crear proyecto",
+                "tags": [
+                    "Proyectos"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Proyecto creado"
+                    }
+                }
+            }
+        },
+        "/api/projects/{id}": {
+            "put": {
+                "summary": "Actualizar proyecto",
+                "tags": [
+                    "Proyectos"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Proyecto actualizado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar proyecto",
+                "tags": [
+                    "Proyectos"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Proyecto eliminado"
+                    }
+                }
+            }
+        },
+        "/api/projects/leader/{leaderId}": {
+            "get": {
+                "summary": "Listar proyectos por líder",
+                "tags": [
+                    "Proyectos"
+                ],
+                "parameters": [
+                    {
+                        "name": "leaderId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de proyectos del líder"
+                    }
+                }
+            }
+        },
+        "/api/templates": {
+            "get": {
+                "summary": "Listar plantillas",
+                "tags": [
+                    "Plantillas"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de plantillas"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Crear plantilla",
+                "tags": [
+                    "Plantillas"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Plantilla creada"
+                    }
+                }
+            }
+        },
+        "/api/templates/{id}": {
+            "put": {
+                "summary": "Actualizar plantilla",
+                "tags": [
+                    "Plantillas"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Plantilla actualizada"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar plantilla",
+                "tags": [
+                    "Plantillas"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Plantilla eliminada"
+                    }
+                }
+            }
+        },
+        "/api/time-entries": {
+            "get": {
+                "summary": "Listar registros de tiempo",
+                "tags": [
+                    "Registros de Tiempo"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de registros de tiempo"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Crear registro de tiempo",
+                "tags": [
+                    "Registros de Tiempo"
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Registro creado"
+                    }
+                }
+            }
+        },
+        "/api/time-entries/{id}": {
+            "put": {
+                "summary": "Actualizar registro de tiempo",
+                "tags": [
+                    "Registros de Tiempo"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Registro actualizado"
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Eliminar registro de tiempo",
+                "tags": [
+                    "Registros de Tiempo"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Registro eliminado"
+                    }
+                }
+            }
+        },
+        "/api/time-entries/user/{userId}": {
+            "get": {
+                "summary": "Listar registros por usuario",
+                "tags": [
+                    "Registros de Tiempo"
+                ],
+                "parameters": [
+                    {
+                        "name": "userId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registros del usuario"
+                    }
+                }
+            }
+        },
+        "/api/time-entries/project/{projectId}": {
+            "get": {
+                "summary": "Listar registros por proyecto",
+                "tags": [
+                    "Registros de Tiempo"
+                ],
+                "parameters": [
+                    {
+                        "name": "projectId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registros del proyecto"
+                    }
+                }
+            }
+        },
+        "/api/time-entries/date-range": {
+            "get": {
+                "summary": "Listar registros por rango de fechas",
+                "tags": [
+                    "Registros de Tiempo"
+                ],
+                "parameters": [
+                    {
+                        "name": "start",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "2025-01-01"
+                        }
+                    },
+                    {
+                        "name": "end",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "example": "2025-01-31"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Registros encontrados"
+                    }
+                }
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Autenticación"
+        },
+        {
+            "name": "Usuarios"
+        },
+        {
+            "name": "Clientes"
+        },
+        {
+            "name": "Proyectos"
+        },
+        {
+            "name": "Plantillas"
+        },
+        {
+            "name": "Registros de Tiempo"
+        }
+    ]
+}
