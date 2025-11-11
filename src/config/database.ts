@@ -17,6 +17,8 @@ const db = new Database(dbPath, { verbose: console.log });
 // Habilitar foreign keys
 db.pragma('foreign_keys = ON');
 
+console.log('🗄️ Base de datos usada:', dbPath);
+
 // Crear las tablas si no existen
 export function initializeDatabase() {
   console.log('🔧 Inicializando base de datos...');
@@ -86,6 +88,19 @@ export function initializeDatabase() {
     );
   `);
 
+  // Tabla de asignación de desarrolladores a proyectos
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS project_developers (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      developer_id INTEGER NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+      FOREIGN KEY (developer_id) REFERENCES users(id) ON DELETE CASCADE,
+      UNIQUE(project_id, developer_id)
+    );
+  `);
+
   // Crear índices para mejorar el rendimiento
   db.exec(`
     CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -94,6 +109,8 @@ export function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_time_entries_user ON time_entries(user_id);
     CREATE INDEX IF NOT EXISTS idx_time_entries_project ON time_entries(project_id);
     CREATE INDEX IF NOT EXISTS idx_time_entries_date ON time_entries(date);
+    CREATE INDEX IF NOT EXISTS idx_project_developers_project ON project_developers(project_id);
+    CREATE INDEX IF NOT EXISTS idx_project_developers_developer ON project_developers(developer_id);
   `);
 
   console.log('✅ Base de datos inicializada correctamente');
@@ -117,10 +134,10 @@ export function seedDatabase() {
   `);
 
   insertUser.run('Admin User', 'admin@timetracker.com', 'admin123', 'admin');
-  insertUser.run('Maria Garcia', 'maria@timetracker.com', 'leader123', 'leader');
-  insertUser.run('Carlos Lopez', 'carlos@timetracker.com', 'dev123', 'developer');
+  insertUser.run('Jimena Espinosa', 'jimena@timetracker.com', 'leader123', 'leader');
+  insertUser.run('Paula Sierra', 'paula@timetracker.com', 'dev123', 'developer');
   insertUser.run('Ana Martinez', 'ana@timetracker.com', 'dev123', 'developer');
-  insertUser.run('Juan Perez', 'juan@timetracker.com', 'leader123', 'leader');
+  insertUser.run('Harry Cadena', 'harry@timetracker.com', 'leader123', 'leader');
 
   // Clientes
   const insertClient = db.prepare(`
