@@ -42,7 +42,20 @@ export const getProjectsByLeader = (req: Request, res: Response) => {
       WHERE p.leader_id = ?
     `).all(leaderId);
 
-    res.json({ success: true, data: projects });
+    // Para cada proyecto, obtener los desarrolladores asignados
+    const getDevs = db.prepare(`
+      SELECT u.id, u.name, u.email, u.role
+      FROM project_developers pd
+      JOIN users u ON pd.developer_id = u.id
+      WHERE pd.project_id = ?
+    `);
+
+    const projectsWithDevs = projects.map((project: any) => ({
+      ...project,
+      developers: getDevs.all(project.id)
+    }));
+
+    res.json({ success: true, data: projectsWithDevs });
   } catch (error) {
     console.error('Error obteniendo proyectos del líder:', error);
     res.status(500).json({ success: false, message: 'Error al obtener proyectos' });

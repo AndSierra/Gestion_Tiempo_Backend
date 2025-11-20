@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const timeEntryController_1 = require("../controllers/timeEntryController");
+const router = (0, express_1.Router)();
+router.get('/', timeEntryController_1.getAllTimeEntries);
+router.get('/user/:userId', timeEntryController_1.getTimeEntriesByUser);
+router.get('/project/:projectId', timeEntryController_1.getTimeEntriesByProject);
+router.get('/leader/:leaderId', timeEntryController_1.getTimeEntriesByLeader);
+router.get('/date-range', timeEntryController_1.getTimeEntriesByDateRange);
+router.post('/', timeEntryController_1.createTimeEntry);
+router.put('/:id', timeEntryController_1.updateTimeEntry);
+router.delete('/:id', timeEntryController_1.deleteTimeEntry);
+exports.default = router;

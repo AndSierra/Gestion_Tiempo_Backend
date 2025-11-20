@@ -3,6 +3,7 @@ import {
   getAllTimeEntries,
   getTimeEntriesByUser,
   getTimeEntriesByProject,
+  getTimeEntriesByLeader,
   getTimeEntriesByDateRange,
   createTimeEntry,
   updateTimeEntry,
@@ -14,6 +15,7 @@ const router = Router();
 router.get('/', getAllTimeEntries);
 router.get('/user/:userId', getTimeEntriesByUser);
 router.get('/project/:projectId', getTimeEntriesByProject);
+router.get('/leader/:leaderId', getTimeEntriesByLeader); 
 router.get('/date-range', getTimeEntriesByDateRange);
 router.post('/', createTimeEntry);
 router.put('/:id', updateTimeEntry);

@@ -119,7 +119,7 @@ export function initializeDatabase() {
 // Función para insertar datos iniciales
 export function seedDatabase() {
   const userCount = db.prepare('SELECT COUNT(*) as count FROM users').get() as { count: number };
-  
+
   if (userCount.count > 0) {
     console.log('ℹ️ La base de datos ya tiene datos, saltando seed...');
     return;
@@ -127,39 +127,62 @@ export function seedDatabase() {
 
   console.log('🌱 Insertando datos iniciales...');
 
-  // Usuarios de prueba
+  // ==================== USUARIOS ====================
   const insertUser = db.prepare(`
     INSERT INTO users (name, email, password, role) 
     VALUES (?, ?, ?, ?)
   `);
 
-  insertUser.run('Admin User', 'admin@timetracker.com', 'admin123', 'admin');
-  insertUser.run('Jimena Espinosa', 'jimena@timetracker.com', 'leader123', 'leader');
-  insertUser.run('Paula Sierra', 'paula@timetracker.com', 'dev123', 'developer');
-  insertUser.run('Ana Martinez', 'ana@timetracker.com', 'dev123', 'developer');
-  insertUser.run('Harry Cadena', 'harry@timetracker.com', 'leader123', 'leader');
+  const adminId = insertUser.run('Admin User', 'admin@timetracker.com', 'admin123', 'admin').lastInsertRowid;
+  const leaderId = insertUser.run('Jimena Espinosa', 'jimena@timetracker.com', 'leader123', 'leader').lastInsertRowid;
+  const devId = insertUser.run('Harry Cadena', 'harry@timetracker.com', 'dev123', 'developer').lastInsertRowid;
 
-  // Clientes
+  console.log(`✓ Usuarios creados: Admin (${adminId}), Líder (${leaderId}), Desarrollador (${devId})`);
+
+  // ==================== CLIENTES ====================
   const insertClient = db.prepare(`
     INSERT INTO clients (name, description) 
     VALUES (?, ?)
   `);
 
-  insertClient.run('Tech Solutions Inc.', 'Empresa de soluciones tecnológicas');
-  insertClient.run('Digital Marketing Co.', 'Agencia de marketing digital');
-  insertClient.run('Finance Corp', 'Servicios financieros corporativos');
+  const client1 = insertClient.run('Tech Solutions Inc.', 'Empresa de soluciones tecnológicas').lastInsertRowid;
+  const client2 = insertClient.run('Digital Marketing Co.', 'Agencia de marketing digital').lastInsertRowid;
+  const client3 = insertClient.run('Finance Corp', 'Servicios financieros corporativos').lastInsertRowid;
 
-  // Proyectos
+  console.log(`✓ Clientes creados: ${client1}, ${client2}, ${client3}`);
+
+  // ==================== PROYECTOS ====================
   const insertProject = db.prepare(`
     INSERT INTO projects (name, client_id, leader_id, tasks) 
     VALUES (?, ?, ?, ?)
   `);
 
-  insertProject.run('Desarrollo Web Portal', 1, 2, 'Frontend,Backend,Testing,Documentación');
-  insertProject.run('Campaña Digital Q1', 2, 5, 'Diseño,Contenido,Análisis,Reportes');
-  insertProject.run('App Mobile Banking', 3, 2, 'UI/UX,Desarrollo,Testing,Deployment');
+  // Proyectos asignados a Jimena (líder)
+  const p1 = insertProject.run('Desarrollo Web Portal', client1, leaderId, 'Frontend,Backend,Testing,Documentación').lastInsertRowid;
+  const p2 = insertProject.run('Campaña Digital Q1', client2, leaderId, 'Diseño,Contenido,Análisis,Reportes').lastInsertRowid;
+  const p3 = insertProject.run('App Mobile Banking', client3, leaderId, 'UI/UX,Desarrollo,Testing,Deployment').lastInsertRowid;
+  const p4 = insertProject.run('Sistema Analítica Finanzas', client3, leaderId, 'Backend,Integraciones,Testing,Optimización').lastInsertRowid;
+  const p5 = insertProject.run('Plataforma eCommerce', client1, leaderId, 'UI/UX,Frontend,Backend,Testing,Reportes').lastInsertRowid;
+  const p6 = insertProject.run('Portal Soporte Clientes', client1, leaderId, 'Chatbot,Backend,Base de datos,Testing').lastInsertRowid;
+  const p7 = insertProject.run('Dashboards Marketing', client2, leaderId, 'Diseño,Contenido,Visualización,Análisis').lastInsertRowid;
 
-  // Plantillas
+  console.log(`✓ Proyectos creados: 7 proyectos asignados a Jimena (líder)`);
+
+  // ==================== ASIGNAR DESARROLLADORES ====================
+  const assignDev = db.prepare(`
+    INSERT INTO project_developers (project_id, developer_id) 
+    VALUES (?, ?)
+  `);
+
+  // Asignar Harry a todos los proyectos
+  const projects = [p1, p2, p3, p4, p5, p6, p7];
+  projects.forEach(projectId => {
+    assignDev.run(projectId, devId);
+  });
+
+  console.log(`✓ Harry asignado a ${projects.length} proyectos`);
+
+  // ==================== PLANTILLAS ====================
   const insertTemplate = db.prepare(`
     INSERT INTO templates (name, description, tasks) 
     VALUES (?, ?, ?)
@@ -170,47 +193,97 @@ export function seedDatabase() {
     'Plantilla para proyectos web típicos',
     'Frontend,Backend,Testing,Documentación,Deployment'
   );
+
   insertTemplate.run(
     'Campaña Marketing',
     'Plantilla para campañas de marketing',
     'Investigación,Diseño,Contenido,Análisis,Reportes'
   );
+
   insertTemplate.run(
     'Desarrollo Mobile',
     'Plantilla para apps móviles',
     'UI/UX,Desarrollo iOS,Desarrollo Android,Testing,Publicación'
   );
 
-  // Registros de tiempo de ejemplo
+  insertTemplate.run(
+    'Análisis Financiero Avanzado',
+    'Plantilla para sistemas de análisis financiero y optimización de procesos',
+    'Backend,Integraciones,Optimización,Testing,Documentación'
+  );
+
+  insertTemplate.run(
+    'eCommerce Completo',
+    'Plantilla para plataformas de comercio electrónico con frontend y backend integrados',
+    'UI/UX,Frontend,Backend,Pasarelas de Pago,Testing,Reportes'
+  );
+
+  insertTemplate.run(
+    'Portal de Atención al Cliente',
+    'Plantilla para portales con chatbot y administración de casos de soporte',
+    'Chatbot,Backend,Base de datos,Integraciones,Testing'
+  );
+
+  insertTemplate.run(
+    'Marketing Insights',
+    'Plantilla para dashboards de análisis de campañas de marketing',
+    'Diseño,Visualización,Extracción de Datos,Análisis,Reportes'
+  );
+
+  console.log('✓ 7 plantillas creadas');
+
+  // ==================== REGISTROS DE TIEMPO ====================
   const insertTimeEntry = db.prepare(`
     INSERT INTO time_entries (user_id, project_id, task_name, date, start_time, end_time, hours, description) 
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const today = new Date();
+  let entriesCreated = 0;
+
+  // Crear entradas de tiempo para los últimos 15 días
   for (let i = 0; i < 15; i++) {
     const date = new Date(today);
     date.setDate(date.getDate() - i);
     const dateStr = date.toISOString().split('T')[0];
-    
-    const hours = Math.floor(Math.random() * 9) + 1;
-    const startHour = 9 + Math.floor(Math.random() * 3);
+
+    // Solo crear entradas para días laborables (lunes a viernes)
+    const dayOfWeek = date.getDay();
+    if (dayOfWeek === 0 || dayOfWeek === 6) continue; // Saltar fines de semana
+
+    const hours = Math.floor(Math.random() * 5) + 4; // 4-8 horas
+    const startHour = 9 + Math.floor(Math.random() * 2); // 9-10 AM
     const endHour = startHour + hours;
 
+    // Entrada para proyecto 1 (Frontend)
     insertTimeEntry.run(
-      3, 1, 'Frontend', dateStr,
+      devId, p1, 'Frontend', dateStr,
       `${startHour}:00`, `${endHour}:00`, hours,
       'Desarrollo de componentes React'
     );
 
+    // Entrada para proyecto 2 (Diseño)
     insertTimeEntry.run(
-      4, 2, 'Diseño', dateStr,
+      devId, p2, 'Diseño', dateStr,
       `${startHour}:00`, `${endHour}:00`, hours,
       'Diseño de interfaces'
     );
+
+    entriesCreated += 2;
   }
 
-  console.log('✅ Datos iniciales insertados correctamente');
+  console.log(`✓ ${entriesCreated} registros de tiempo creados`);
+
+  console.log('');
+  console.log('═══════════════════════════════════════════');
+  console.log('  ✅ Datos iniciales insertados correctamente');
+  console.log('═══════════════════════════════════════════');
+  console.log('  Usuarios de prueba:');
+  console.log('  📧 admin@timetracker.com / admin123 (Admin)');
+  console.log('  📧 jimena@timetracker.com / leader123 (Líder)');
+  console.log('  📧 harry@timetracker.com / dev123 (Desarrollador)');
+  console.log('═══════════════════════════════════════════');
+  console.log('');
 }
 
 export default db;

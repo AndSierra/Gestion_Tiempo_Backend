@@ -58,6 +58,27 @@ export const getTimeEntriesByProject = (req: Request, res: Response) => {
   }
 };
 
+export const getTimeEntriesByLeader = (req: Request, res: Response) => {
+  try {
+    const { leaderId } = req.params;
+
+    // Obtener registros de tiempo de todos los proyectos del líder
+    const entries = db.prepare(`
+      SELECT t.*, u.name as userName, p.name as projectName
+      FROM time_entries t
+      LEFT JOIN users u ON t.user_id = u.id
+      LEFT JOIN projects p ON t.project_id = p.id
+      WHERE p.leader_id = ?
+      ORDER BY t.date DESC, t.start_time DESC
+    `).all(leaderId);
+
+    res.json({ success: true, data: entries });
+  } catch (error) {
+    console.error('Error obteniendo registros del líder:', error);
+    res.status(500).json({ success: false, message: 'Error al obtener registros' });
+  }
+};
+
 export const getTimeEntriesByDateRange = (req: Request, res: Response) => {
   try {
     const { start, end } = req.query;

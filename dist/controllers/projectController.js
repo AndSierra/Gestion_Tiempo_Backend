@@ -1,0 +1,168 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.deleteProject = exports.updateProject = exports.createProject = exports.getProjectsByLeader = exports.getAllProjects = void 0;
+const database_1 = __importDefault(require("../config/database"));
+const getAllProjects = (req, res) => {
+    try {
+        const projects = database_1.default.prepare(`
+      SELECT p.*, c.name as clientName, u.name as leaderName
+      FROM projects p
+      LEFT JOIN clients c ON p.client_id = c.id
+      LEFT JOIN users u ON p.leader_id = u.id
+    `).all();
+        // Para cada proyecto, obtener los desarrolladores asignados
+        const getDevs = database_1.default.prepare(`
+      SELECT u.id, u.name, u.email
+      FROM project_developers pd
+      JOIN users u ON pd.developer_id = u.id
+      WHERE pd.project_id = ?
+    `);
+        const projectsWithDevs = projects.map((project) => ({
+            ...project,
+            developers: getDevs.all(project.id)
+        }));
+        res.json({ success: true, data: projectsWithDevs });
+    }
+    catch (error) {
+        console.error('Error obteniendo proyectos:', error);
+        res.status(500).json({ success: false, message: 'Error al obtener proyectos' });
+    }
+};
+exports.getAllProjects = getAllProjects;
+const getProjectsByLeader = (req, res) => {
+    try {
+        const { leaderId } = req.params;
+        const projects = database_1.default.prepare(`
+      SELECT p.*, c.name as clientName, u.name as leaderName
+      FROM projects p
+      LEFT JOIN clients c ON p.client_id = c.id
+      LEFT JOIN users u ON p.leader_id = u.id
+      WHERE p.leader_id = ?
+    `).all(leaderId);
+        // Para cada proyecto, obtener los desarrolladores asignados
+        const getDevs = database_1.default.prepare(`
+      SELECT u.id, u.name, u.email, u.role
+      FROM project_developers pd
+      JOIN users u ON pd.developer_id = u.id
+      WHERE pd.project_id = ?
+    `);
+        const projectsWithDevs = projects.map((project) => ({
+            ...project,
+            developers: getDevs.all(project.id)
+        }));
+        res.json({ success: true, data: projectsWithDevs });
+    }
+    catch (error) {
+        console.error('Error obteniendo proyectos del líder:', error);
+        res.status(500).json({ success: false, message: 'Error al obtener proyectos' });
+    }
+};
+exports.getProjectsByLeader = getProjectsByLeader;
+const createProject = (req, res) => {
+    try {
+        const { name, clientId, leaderId, tasks, developerIds } = req.body;
+        if (!name || !clientId || !leaderId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Nombre, cliente y líder son requeridos'
+            });
+        }
+        // Iniciar transacción
+        const insertProject = database_1.default.prepare(`
+      INSERT INTO projects (name, client_id, leader_id, tasks) 
+      VALUES (?, ?, ?, ?)
+    `);
+        const insertDeveloper = database_1.default.prepare(`
+      INSERT INTO project_developers (project_id, developer_id) 
+      VALUES (?, ?)
+    `);
+        const transaction = database_1.default.transaction((projectData, devIds) => {
+            const result = insertProject.run(projectData.name, projectData.clientId, projectData.leaderId, projectData.tasks || '');
+            const projectId = result.lastInsertRowid;
+            // Asignar desarrolladores si se proporcionaron
+            if (devIds && Array.isArray(devIds) && devIds.length > 0) {
+                for (const devId of devIds) {
+                    insertDeveloper.run(projectId, devId);
+                }
+            }
+            return projectId;
+        });
+        const projectId = transaction({ name, clientId, leaderId, tasks }, developerIds || []);
+        res.status(201).json({
+            success: true,
+            data: { id: projectId, name, clientId, leaderId, tasks, developerIds },
+            message: 'Proyecto creado exitosamente'
+        });
+    }
+    catch (error) {
+        console.error('Error creando proyecto:', error);
+        res.status(500).json({ success: false, message: 'Error al crear proyecto' });
+    }
+};
+exports.createProject = createProject;
+const updateProject = (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, clientId, leaderId, tasks, developerIds } = req.body;
+        if (!name || !clientId || !leaderId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Nombre, cliente y líder son requeridos'
+            });
+        }
+        const updateProjectQuery = database_1.default.prepare(`
+      UPDATE projects 
+      SET name = ?, client_id = ?, leader_id = ?, tasks = ? 
+      WHERE id = ?
+    `);
+        const deleteDevelopers = database_1.default.prepare(`
+      DELETE FROM project_developers WHERE project_id = ?
+    `);
+        const insertDeveloper = database_1.default.prepare(`
+      INSERT INTO project_developers (project_id, developer_id) 
+      VALUES (?, ?)
+    `);
+        const transaction = database_1.default.transaction((projectId, projectData, devIds) => {
+            const result = updateProjectQuery.run(projectData.name, projectData.clientId, projectData.leaderId, projectData.tasks || '', projectId);
+            if (result.changes === 0) {
+                throw new Error('Proyecto no encontrado');
+            }
+            // Eliminar asignaciones existentes
+            deleteDevelopers.run(projectId);
+            // Asignar nuevos desarrolladores
+            if (devIds && Array.isArray(devIds) && devIds.length > 0) {
+                for (const devId of devIds) {
+                    insertDeveloper.run(projectId, devId);
+                }
+            }
+        });
+        transaction(parseInt(id), { name, clientId, leaderId, tasks }, developerIds || []);
+        res.json({ success: true, message: 'Proyecto actualizado exitosamente' });
+    }
+    catch (error) {
+        console.error('Error actualizando proyecto:', error);
+        if (error.message === 'Proyecto no encontrado') {
+            return res.status(404).json({ success: false, message: error.message });
+        }
+        res.status(500).json({ success: false, message: 'Error al actualizar proyecto' });
+    }
+};
+exports.updateProject = updateProject;
+const deleteProject = (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = database_1.default.prepare('DELETE FROM projects WHERE id = ?').run(id);
+        if (result.changes === 0) {
+            return res.status(404).json({ success: false, message: 'Proyecto no encontrado' });
+        }
+        res.json({ success: true, message: 'Proyecto eliminado exitosamente' });
+    }
+    catch (error) {
+        console.error('Error eliminando proyecto:', error);
+        res.status(500).json({ success: false, message: 'Error al eliminar proyecto' });
+    }
+};
+exports.deleteProject = deleteProject;
